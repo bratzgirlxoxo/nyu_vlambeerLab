@@ -12,14 +12,29 @@ using UnityEngine;
 public class Pathmaker : MonoBehaviour {
 
 // STEP 2: ============================================================================================
-// translate the pseudocode below
+	// translate the pseudocode below
 
-//	DECLARE CLASS MEMBER VARIABLES:
-//	Declare a private integer called counter that starts at 0; 		// counter var will track how many floor tiles I've instantiated
-//	Declare a public Transform called floorPrefab, assign the prefab in inspector;
-//	Declare a public Transform called pathmakerSpherePrefab, assign the prefab in inspector; 		// you'll have to make a "pathmakerSphere" prefab later
+	//	DECLARE CLASS MEMBER VARIABLES:
+	//	Declare a private integer called counter that starts at 0;
+	private int counter = 0; // counter var will track how many floor tiles I've instantiated
+	//	Declare a public Transform called floorPrefab, assign the prefab in inspector;
+	public Transform floorPrefab;
+	//	Declare a public Transform called pathmakerSpherePrefab, assign the prefab in inspector; 
+	public Transform pathmakerSpherePrefab;  // you'll have to make a "pathmakerSphere" prefab later
+
+	public int maxTilesToMake;
+	
+	private Vector3 ray_pos = new Vector3(0, 2f, 0);
+
+	
 
 
+	void Start()
+	{
+		GameManager.instance.pathmakers.Add(transform.gameObject);
+		maxTilesToMake = Random.Range(maxTilesToMake / 2, maxTilesToMake);
+	}
+	
 	void Update () {
 //		If counter is less than 50, then:
 //			Generate a random number from 0.0f to 1.0f;
@@ -33,6 +48,44 @@ public class Pathmaker : MonoBehaviour {
 //			Increment counter;
 //		Else:
 //			Destroy my game object; 		// self destruct if I've made enough tiles already
+
+		if (counter < maxTilesToMake)
+		{
+			float rand = Random.value;
+			if (rand <= 0.75f && rand >= 0.65f)
+			{
+				transform.Rotate(0f, 90f, 0f);
+			}
+			else if (rand <= 0.85f && rand > 0.75f)
+			{
+				transform.Rotate(0f, -90f, 0f);
+			}
+			else if (rand < 1f && rand >= 0.95f)
+			{
+				Instantiate(pathmakerSpherePrefab, transform.position, pathmakerSpherePrefab.rotation);
+			}
+
+			Ray checkerRay = new Ray(transform.position + ray_pos, -transform.up);
+
+			float maxRayDist = 3f;
+
+			bool rcast = Physics.Raycast(checkerRay, maxRayDist);
+
+			if (!rcast) // if there is no tile already here
+			{
+				Transform newTile = Instantiate(floorPrefab, transform.position, floorPrefab.rotation);
+				GameManager.instance.tiles++;
+				GameManager.instance.tile_objects.Add(newTile);
+			
+				counter++;
+			}
+			transform.position += transform.forward * 5f;
+		}
+		else
+		{
+			GameManager.instance.pathmakers.Remove(transform.gameObject);
+			Destroy(transform.gameObject);
+		}
 	}
 
 } // end of class scope
